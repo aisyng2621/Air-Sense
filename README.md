@@ -66,9 +66,7 @@ AirSense is designed to assist:
 
 ### 🔹 Data Sources
 
-* CPCB API / OpenAQ
-* Open-Meteo Weather API
-
+* CPCB API 
 ### 🔹 Backend
 
 * Python
@@ -80,7 +78,7 @@ AirSense is designed to assist:
 
 ### 🔹 Notification System
 
-* Email alerts using SMTP / SendGrid
+* Email alerts 
 
 
 ## 🖥️ Key Features
