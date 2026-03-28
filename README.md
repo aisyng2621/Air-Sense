@@ -1,71 +1,101 @@
-# Air- Sense
-# 🌫️ AirSense: AI-Based AQI Forecast & Smart Health Advisory System
-# AirSense: AI-Based AQI Forecast & Health Advisory System
+# AirSense
 
-## 🚀 What the Project Does
-This project predicts the next 24-hour Air Quality Index (AQI) for Indian cities and converts it into simple, actionable health advisories.
-
-Instead of showing raw AQI numbers, the system helps users understand:
-- When it is safe to go outside
-- When to avoid exposure
-- What precautions to take
+AirSense is an AI - Based System which predicts the next day's AIR QUALITY INDEX and provides user simple, personalized advice for users.  
+We convert data into decisions.
 
 ---
 
-## 👥 Who It Serves
-- General public in urban areas  
-- Children (sensitive to pollution)  
-- People with respiratory conditions  
-
-Focus cities: Gwalior + polluted Tier-2 cities in Madhya Pradesh  
+##  PROBLEM STATEMENT
+There is a huge problem that air quality data of Indian cities is scattered and it shows current AQI, i.e., it doesn't forecast the future values.
 
 ---
 
-## ⚙️ How It Works
-1. Fetch AQI data (CPCB)
-2. Process last 30  1-year historical data  
-3. Use XGBoost model with lag + weather features  
-4. Predict next 24-hour AQI with confidence level  
-5. Classify AQI using CPCB standards  
-6. Generate personalized health advisories  
-7. Display via dashboard and alerts  
+##  OUR SOLUTION
+We suggest AirSense, an AI-based system that does AQI forecasting and provides users with easy-to-understand health personal advisories.
 
 ---
 
-## 🧠 AI Tools Used (Transparency)
-
-- **ChatGPT** → Problem understanding, advisory logic design  
-- **Claude** → Code generation and API integration  
-- **XGBoost** → AQI prediction model  
-
-👉 Most used tool: ChatGPT  
-
----
-
-## 🤖 AI vs Human Responsibility
-
-**AI Role:**
-- AQI forecasting  
-- Advisory generation  
-
-**Human Role:**
-- Define health rules  
-- Validate outputs  
-- Handle edge cases  
+##  TARGET USERS
+Our target audience is:
+- Daily commuters  
+- Kids  
+- Parents  
+- Patients suffering from respiratory problems  
+- Citizens living in polluted cities (e.g., Gwalior, Delhi, etc.)
 
 ---
 
-## 🇮🇳 India-Specific Design
+## SYSTEM WORKFLOW
 
-- Uses CPCB AQI categories (Good → Severe)  
-- Handles Indian pollution patterns (Diwali, dust, seasonal smog)  
-- Focus on Tier-2 cities with limited awareness tools  
-- Simple language advisories for accessibility  
+Collect AQI data from CPCB and Weather data from Visual Crossing  
+↓  
+Processing the data: filling missing values (mean of previous three values), feature engineering, dropping columns  
+↓  
+Merge AQI and Weather Data  
+↓  
+Train XGBoost Model for AQI Prediction  
+↓  
+Generate `.pkl` file and attach it to main website through Streamlit  
 
 ---
 
-## 🛠️ Tech Stack
+##  AI TOOLS AND TECHNOLOGIES
 
-- Python (Data processing & modeling)  
-- XGBoost (Prediction model)  
-- Streamlit (Dashboard)  
+- **Data Preprocessing:** Python, Pandas  
+- **Machine Learning:**  
+- **Frontend:**  
+- **Backend:** Python  
+
+---
+
+##  AI TOOL TRANSPARENCY
+
+| Tool      | Purpose |
+|-----------|--------|
+| CLAUDE    | Used for making UI, deployment part and to integrate and backend support of the website |
+| CHATGPT   | For formation of problem, solving minor problems, glitches and doubts |
+
+---
+
+##  ERROR HANDLING STRATEGY
+
+The system incorporates error handling primarily during the data preprocessing stage to ensure data quality. Missing values are handled using appropriate techniques like taking the mean of three previous values of the row in AQI dataset. Feature engineering techniques such as creation of new features are applied. If APIs are used, error handling such as timeouts, rate limits, etc., should be included.
+
+---
+
+##  WHAT WOULD WE BUILD NEXT
+
+If we had more time, we could have done the following:
+1. Used APIs with permissions  
+2. Better frontend  
+3. More robust predictions  
+4. Track additional factors like patient health history and environmental conditions  
+
+---
+
+## IMPACT
+
+Our AI-based system helps in the following ways:
+1. Individuals make better decisions every day in polluted environments regarding their health  
+2. Stay safer during high AQI/pollution conditions  
+3. Raise awareness for public health  
+
+---
+
+## CONCLUSION
+
+AirSense takes raw data and converts it into useful information, allowing citizens to make better informed decisions in a polluted environment.
+
+---
+
+## SCOPE
+
+This is a prototype focusing on data preprocessing and AQI prediction.  
+Dashboard and real-time deployment are part of future work.
+
+---
+
+## TEAM
+
+**TEAM NEXUS**  
+AI SYNERGY HACKATHON
