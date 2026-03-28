@@ -1,71 +1,62 @@
-# Air- Sense
-# 🌫️ AirSense: AI-Based AQI Forecast & Smart Health Advisory System
-# AirSense: AI-Based AQI Forecast & Health Advisory System
+9# 🌫️ AirSense: AI-Based AQI Forecast & Smart Health Advisory System
 
-## 🚀 What the Project Does
-This project predicts the next 24-hour Air Quality Index (AQI) for Indian cities and converts it into simple, actionable health advisories.
+AirSense is an AI - Based System which predicts the next day's AIR QUALITY INDEX and provides user simple ,personalized advice for users. We convert data into decisions.
 
-Instead of showing raw AQI numbers, the system helps users understand:
-- When it is safe to go outside
-- When to avoid exposure
-- What precautions to take
+*PROBLEM STATEMENT*
+There is a huge problem that air quality data of Indian cities is scattered and it is shows current AQI ,i.e. it doesn't forecast the future values. 
 
----
+*OUR SOLUTION*
+We Suggest you AirSense, an AI-based system that do AQI forecasting  and provides user with easy to understand health personal advisories.
 
-## 👥 Who It Serves
-- General public in urban areas  
-- Children (sensitive to pollution)  
-- People with respiratory conditions  
+*TARGET USERS*
+Our target audience is daily commuters,kids,parents,patients suffering from respiratory problems and citizens living in polluted cities,e.g., Gwalior,Delhi, etc.
 
-Focus cities: Gwalior + polluted Tier-2 cities in Madhya Pradesh  
+*SYSTEM WORKFLOW*
+Collect AQI data from CPCB and Weather data from visual crossing
+                                             |
+Processing the data: filling missing values (the mean of the previous three values), feature engineering, dropping columns
+                                             |
+    Merge AQI and Weather Data
+                                             |
+Train XGBoost Model for AQI Prediction
+                                             |
+generated .pkl file try to attach to main website through streamlit
 
----
+*AI TOOLS AND TECHNOLOGIES*
+* Data Preprocessing:Python  , Pandas
+* Machine Learning: 
+* Frontend: 
+* Backend:Python
 
-## ⚙️ How It Works
-1. Fetch AQI data (CPCB)
-2. Process last 30  1-year historical data  
-3. Use XGBoost model with lag + weather features  
-4. Predict next 24-hour AQI with confidence level  
-5. Classify AQI using CPCB standards  
-6. Generate personalized health advisories  
-7. Display via dashboard and alerts  
+*AI TOOL TRANSPARENCY*
+|       Tool               |                            Purpose                                             |
+| 1.)CLAUDE          |    Used for making UI ,deployment part and to     |
+|                              |  integrate and backend support of the website    |
+|2.) CHATGPT        | For formation of problem, to solve minor             | 
+|                              | problem, glitches and solving doubts                     |
+ 
+*ERROR HANDLING STRATEGY*
+The system incorporates error handling primarily during the data preprocessing stage to ensure data quality. Missing values are handled using appropriate technique like taking mean of three previous values of the row in AQI dataset. Feature engineering techniques such as creation of new features. If we have used the API we must have included error handling such as timeouts, rate limits etc.
 
----
+*WHAT WOULD WE BUILD NEXT*
+If we had more time , we could have done the following things:
+1.)Used API with permisions
+2.)Better frontend
+3.) More Robust predictions
+4.)We would have tried to track few more things like patient health history and taken in consideration more factor affecting the user in a polluting enviornment.
 
-## 🧠 AI Tools Used (Transparency)
+*IMPACT*
+Our AI Based System helps in the following ways:
+1.)Indivdual make better decisions everyday in polluted enviornment regarding their health
+2.)Stay safer during high AQI/Pollution conditions
+3.)Raise awareness for Public Health
 
-- **ChatGPT** → Problem understanding, advisory logic design  
-- **Claude** → Code generation and API integration  
-- **XGBoost** → AQI prediction model  
+*CONCLUSION*
+AirSense takes raw data and converted it into useful information, allowing citizens to make better informed decisions in a polluted environment.
 
-👉 Most used tool: ChatGPT  
+*SCOPE*
+This is a prototype focusing on data preprocessing and AQI prediction.
+Dashboard and real-time deployment are part of future work.
 
----
-
-## 🤖 AI vs Human Responsibility
-
-**AI Role:**
-- AQI forecasting  
-- Advisory generation  
-
-**Human Role:**
-- Define health rules  
-- Validate outputs  
-- Handle edge cases  
-
----
-
-## 🇮🇳 India-Specific Design
-
-- Uses CPCB AQI categories (Good → Severe)  
-- Handles Indian pollution patterns (Diwali, dust, seasonal smog)  
-- Focus on Tier-2 cities with limited awareness tools  
-- Simple language advisories for accessibility  
-
----
-
-## 🛠️ Tech Stack
-
-- Python (Data processing & modeling)  
-- XGBoost (Prediction model)  
-- Streamlit (Dashboard)  
+ TEAM NEXUS
+AI SYNERGRY HACKATHON 
