@@ -1,0 +1,9 @@
+flask
+pandas
+numpy
+joblib
+xgboost
+scikit-learn
+openpyxl
+python-dotenv
+APScheduler

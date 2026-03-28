@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AirSense — AQI Monitor</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg:       #0d0f14;
+    --surface:  #161a22;
+    --surface2: #1e2330;
+    --border:   #2a3042;
+    --text:     #e8eaf0;
+    --muted:    #7a8099;
+    --accent:   #4f9cf9;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Space Grotesk', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ── NAV ── */
+  nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 32px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    position: sticky; top: 0; z-index: 50;
+  }
+  .nav-logo { font-weight: 700; font-size: 20px; letter-spacing: -0.5px; }
+  .nav-logo span { color: var(--accent); }
+  .nav-subtitle { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  .btn {
+    padding: 9px 20px; border-radius: 8px;
+    font-family: inherit; font-size: 14px;
+    cursor: pointer; border: none; transition: all .2s;
+    font-weight: 500;
+  }
+  .btn-outline {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
+  }
+  .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-primary { background: var(--accent); color: #fff; font-weight: 600; }
+  .btn-primary:hover { opacity: 0.85; }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* ── ADVISORY BANNER ── */
+  #advisory-banner {
+    display: none;
+    background: #2d1f00;
+    border-bottom: 1px solid #7c4f00;
+    padding: 10px 32px;
+    font-size: 14px;
+    color: #fbbf24;
+  }
+  #advisory-banner strong { margin-right: 8px; }
+
+  /* ── MAIN ── */
+  main { max-width: 1100px; margin: 0 auto; padding: 40px 24px; }
+
+  /* ── SELECTOR ── */
+  .selector-row {
+    display: flex; gap: 12px; align-items: flex-end;
+    margin-bottom: 36px; flex-wrap: wrap;
+  }
+  .selector-row label {
+    font-size: 13px; color: var(--muted);
+    display: block; margin-bottom: 6px;
+  }
+
+  select, input[type=text], input[type=email], input[type=number] {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 14px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    outline: none;
+    transition: border-color .2s;
+  }
+  select:focus, input:focus { border-color: var(--accent); }
+  select { min-width: 200px; cursor: pointer; }
+
+  /* ── AQI CARDS ── */
+  .cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+  @media(max-width: 620px){ .cards { grid-template-columns: 1fr; } }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    transition: border-color .2s;
+  }
+  .card:hover { border-color: #3a4560; }
+  .card-label {
+    font-size: 12px; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 1px;
+    margin-bottom: 14px;
+  }
+  .aqi-number {
+    font-family: 'DM Mono', monospace;
+    font-size: 60px;
+    font-weight: 500;
+    line-height: 1;
+    margin-bottom: 10px;
+    transition: color .4s;
+  }
+  .aqi-badge {
+    display: inline-block;
+    padding: 5px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 14px;
+  }
+  .confidence-row {
+    display: flex; align-items: center; gap: 10px; margin-top: 10px;
+  }
+  .confidence-bar-wrap {
+    flex: 1; height: 6px;
+    background: var(--border);
+    border-radius: 4px; overflow: hidden;
+  }
+  .confidence-bar {
+    height: 100%; border-radius: 4px;
+    background: var(--accent);
+    transition: width .7s ease;
+  }
+  .confidence-label {
+    font-size: 12px; color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    min-width: 38px;
+  }
+
+  /* ── CHART ── */
+  .chart-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    margin-bottom: 28px;
+  }
+  .chart-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 8px;
+  }
+  .chart-header h3 {
+    font-size: 14px; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 1px;
+  }
+  .chart-legend {
+    display: flex; gap: 16px; font-size: 12px; color: var(--muted);
+  }
+  .legend-dot {
+    display: inline-block; width: 10px; height: 10px;
+    border-radius: 50%; margin-right: 5px;
+  }
+  .chart-wrap { height: 230px; margin-top: 16px; }
+
+  /* ── HEALTH SECTION ── */
+  .health-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    margin-bottom: 28px;
+  }
+  .health-section h2 { font-size: 17px; font-weight: 600; margin-bottom: 20px; }
+  .form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .form-group label {
+    font-size: 13px; color: var(--muted);
+    display: block; margin-bottom: 6px;
+  }
+
+  #health-result {
+    display: none;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 20px;
+  }
+  #health-heading { font-size: 15px; font-weight: 600; margin-bottom: 14px; }
+  #health-tips { list-style: none; }
+  #health-tips li {
+    font-size: 14px; color: var(--muted);
+    padding: 7px 0 7px 22px;
+    position: relative;
+    border-bottom: 1px solid var(--border);
+  }
+  #health-tips li:last-child { border-bottom: none; }
+  #health-tips li::before {
+    content: "→";
+    position: absolute; left: 0;
+    color: var(--accent);
+  }
+
+  /* ── ERROR BANNER ── */
+  #error-banner {
+    display: none;
+    background: #2b0d0d;
+    border: 1px solid #5c1a1a;
+    border-radius: 10px;
+    padding: 12px 18px;
+    color: #f87171;
+    font-size: 14px;
+    margin-bottom: 20px;
+  }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,.75);
+    z-index: 100; align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 36px;
+    width: 100%; max-width: 480px;
+    margin: 16px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .modal h2 { font-size: 22px; margin-bottom: 6px; }
+  .modal p { color: var(--muted); font-size: 14px; margin-bottom: 28px; }
+  .modal-form { display: grid; gap: 16px; }
+  .modal-form input, .modal-form select { width: 100%; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .modal-footer {
+    display: flex; gap: 10px;
+    justify-content: flex-end; margin-top: 12px;
+  }
+  .field-label {
+    font-size: 13px; color: var(--muted);
+    display: block; margin-bottom: 6px;
+  }
+
+  .msg {
+    margin-top: 14px; font-size: 14px;
+    padding: 10px 14px; border-radius: 8px; display: none;
+  }
+  .msg.ok  { background: #0d2b1a; color: #4ade80; display: block; }
+  .msg.err { background: #2b0d0d; color: #f87171; display: block; }
+
+  /* ── LOADING ── */
+  .loading { opacity: 0.4; pointer-events: none; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div>
+    <div class="nav-logo">Air<span>Sense</span></div>
+    <div class="nav-subtitle">AI-Based AQI Forecast · MP Cities</div>
+  </div>
+  <button class="btn btn-outline" onclick="openModal()">📬 Subscribe for Alerts</button>
+</nav>
+
+<!-- ADVISORY BANNER -->
+<div id="advisory-banner">
+  <strong>🔔 Govt. Advisory:</strong>
+  <span id="advisory-text"></span>
+</div>
+
+<!-- MAIN -->
+<main>
+
+  <!-- Error banner -->
+  <div id="error-banner">⚠️ <span id="error-text">Could not load AQI data. Please try again.</span></div>
+
+  <!-- City Selector -->
+  <div class="selector-row">
+    <div>
+      <label>Select city</label>
+      <select id="city-select">
+        <option value="Gwalior">Gwalior</option>
+        <option value="Delhi">Delhi</option>
+        <option value="Jabalpur">Jabalpur</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" id="check-btn" onclick="loadAQI()">Check AQI</button>
+  </div>
+
+  <!-- AQI Cards -->
+  <div class="cards" id="cards-section">
+    <div class="card">
+      <div class="card-label">Today's AQI</div>
+      <div class="aqi-number" id="today-aqi">--</div>
+      <div class="aqi-badge" id="today-badge">--</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Tomorrow's Prediction</div>
+      <div class="aqi-number" id="tomorrow-aqi">--</div>
+      <div class="aqi-badge" id="tomorrow-badge">--</div>
+      <div class="confidence-row">
+        <span style="font-size:12px;color:var(--muted)">Model confidence</span>
+        <div class="confidence-bar-wrap">
+          <div class="confidence-bar" id="conf-bar" style="width:0%"></div>
+        </div>
+        <span class="confidence-label" id="conf-label">--%</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chart -->
+  <div class="chart-card">
+    <div class="chart-header">
+      <h3>AQI Trend — Past 7 days + Next 3 days</h3>
+      <div class="chart-legend">
+        <span><span class="legend-dot" style="background:#4f9cf9"></span>Historical</span>
+        <span><span class="legend-dot" style="background:#f97316"></span>Predicted</span>
+      </div>
+    </div>
+    <div class="chart-wrap">
+      <canvas id="aqi-chart"></canvas>
+    </div>
+  </div>
+
+  <!-- Health Personalisation -->
+  <div class="health-section">
+    <h2>How does this AQI affect you?</h2>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Age group</label>
+        <select id="h-age">
+          <option value="child">Child (under 14)</option>
+          <option value="adult" selected>Adult</option>
+          <option value="elderly">Elderly (60+)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Gender</label>
+        <select id="h-gender">
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+          <option value="other">Prefer not to say</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Lung / breathing issue?</label>
+        <select id="h-lung">
+          <option value="no">No</option>
+          <option value="yes">Yes (Asthma, COPD etc.)</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="getHealthAdvice()">Show Personalised Advice</button>
+
+    <div id="health-result">
+      <h4 id="health-heading">Your health tips</h4>
+      <ul id="health-tips"></ul>
+    </div>
+  </div>
+
+</main>
+
+<!-- SUBSCRIBE MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h2>Subscribe to AQI Alerts</h2>
+    <p>Get a personalised email when AQI crosses your threshold in your city.</p>
+
+    <div class="modal-form">
+      <div>
+        <label class="field-label">Your name</label>
+        <input type="text" id="s-name" placeholder="Enter your name">
+      </div>
+      <div>
+        <label class="field-label">Email address</label>
+        <input type="email" id="s-email" placeholder="you@email.com">
+      </div>
+      <div>
+        <label class="field-label">City</label>
+        <select id="s-city">
+          <option value="Gwalior">Gwalior</option>
+          <option value="Delhi">Delhi</option>
+          <option value="Jabalpur">Jabalpur</option>
+        </select>
+      </div>
+      <div class="two-col">
+        <div>
+          <label class="field-label">Age group</label>
+          <select id="s-age">
+            <option value="child">Child</option>
+            <option value="adult" selected>Adult</option>
+            <option value="elderly">Elderly</option>
+          </select>
+        </div>
+        <div>
+          <label class="field-label">Gender</label>
+          <select id="s-gender">
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <label class="field-label">Lung / breathing issue?</label>
+        <select id="s-lung">
+          <option value="no">No</option>
+          <option value="yes">Yes (Asthma, COPD etc.)</option>
+        </select>
+      </div>
+      <div>
+        <label class="field-label">Alert me when AQI exceeds</label>
+        <input type="number" id="s-threshold" value="150" min="50" max="500">
+      </div>
+    </div>
+
+    <div id="sub-msg" class="msg"></div>
+
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitSubscription()">Subscribe</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let chartInstance = null;
+let currentAQI    = 150;
+
+// ── Load AQI ──────────────────────────────────────────────────────────────────
+async function loadAQI() {
+  const city   = document.getElementById('city-select').value;
+  const btn    = document.getElementById('check-btn');
+
+  // Reset UI
+  btn.textContent = 'Loading...';
+  btn.disabled    = true;
+  document.getElementById('error-banner').style.display = 'none';
+  ['today-aqi', 'tomorrow-aqi'].forEach(id => {
+    document.getElementById(id).textContent = '...';
+  });
+  document.getElementById('conf-bar').style.width = '0%';
+  document.getElementById('conf-label').textContent = '--%';
+
+  try {
+    const res = await fetch(`/api/aqi?city=${encodeURIComponent(city)}`);
+    if (!res.ok) throw new Error('Server error');
+    const d = await res.json();
+
+    currentAQI = d.today.aqi;
+
+    // Today card
+    const todayEl  = document.getElementById('today-aqi');
+    todayEl.textContent = d.today.aqi;
+    todayEl.style.color = d.today.color;
+
+    const todayBadge = document.getElementById('today-badge');
+    todayBadge.textContent        = d.today.category;
+    todayBadge.style.background   = d.today.color + '22';
+    todayBadge.style.color        = d.today.color;
+
+    // Tomorrow card
+    const tmrEl   = document.getElementById('tomorrow-aqi');
+    tmrEl.textContent = d.tomorrow.aqi ?? '--';
+    tmrEl.style.color = d.tomorrow.color;
+
+    const tmrBadge = document.getElementById('tomorrow-badge');
+    tmrBadge.textContent      = d.tomorrow.category;
+    tmrBadge.style.background = d.tomorrow.color + '22';
+    tmrBadge.style.color      = d.tomorrow.color;
+
+    // Confidence bar
+    const conf = d.tomorrow.confidence || 0;
+    document.getElementById('conf-bar').style.width   = conf + '%';
+    document.getElementById('conf-label').textContent = conf + '%';
+
+    // Advisory banner
+    const banner = document.getElementById('advisory-banner');
+    if (d.advisory) {
+      document.getElementById('advisory-text').textContent = d.advisory;
+      banner.style.display = 'block';
+    } else {
+      banner.style.display = 'none';
+    }
+
+    // Chart
+    renderChart(d.chart);
+
+    // Save to localStorage
+    localStorage.setItem('lastAQI', d.today.aqi);
+    localStorage.setItem('lastCity', city);
+
+  } catch (err) {
+    document.getElementById('error-text').textContent =
+      'Could not load AQI. Make sure model is trained and Flask is running.';
+    document.getElementById('error-banner').style.display = 'block';
+    ['today-aqi', 'tomorrow-aqi'].forEach(id => {
+      document.getElementById(id).textContent = '--';
+    });
+  } finally {
+    btn.textContent = 'Check AQI';
+    btn.disabled    = false;
+  }
+}
+
+// ── Render Chart ──────────────────────────────────────────────────────────────
+function renderChart(chart) {
+  const ctx = document.getElementById('aqi-chart').getContext('2d');
+  if (chartInstance) chartInstance.destroy();
+
+  chartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: chart.labels,
+      datasets: [
+        {
+          label: 'Historical AQI',
+          data: chart.past,
+          borderColor: '#4f9cf9',
+          backgroundColor: 'rgba(79,156,249,0.08)',
+          tension: 0.4,
+          pointRadius: 4,
+          pointBackgroundColor: '#4f9cf9',
+          fill: true,
+          spanGaps: false,
+        },
+        {
+          label: 'Predicted AQI',
+          data: chart.future,
+          borderColor: '#f97316',
+          borderDash: [6, 4],
+          backgroundColor: 'rgba(249,115,22,0.06)',
+          tension: 0.4,
+          pointRadius: 4,
+          pointBackgroundColor: '#f97316',
+          fill: true,
+          spanGaps: false,
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#1e2330',
+          borderColor: '#2a3042',
+          borderWidth: 1,
+          titleColor: '#e8eaf0',
+          bodyColor: '#7a8099',
+          callbacks: {
+            label: ctx => {
+              const v = ctx.raw;
+              return v != null ? `${ctx.dataset.label}: ${v}` : null;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: { color: '#7a8099', font: { size: 11, family: 'Space Grotesk' } },
+          grid:  { color: '#1e2330' }
+        },
+        y: {
+          ticks: { color: '#7a8099', font: { size: 11, family: 'Space Grotesk' } },
+          grid:  { color: '#1e2330' },
+          min: 0
+        }
+      }
+    }
+  });
+}
+
+// ── Health Advice ─────────────────────────────────────────────────────────────
+async function getHealthAdvice() {
+  const aqi    = currentAQI || parseInt(localStorage.getItem('lastAQI')) || 150;
+  const age    = document.getElementById('h-age').value;
+  const gender = document.getElementById('h-gender').value;
+  const lung   = document.getElementById('h-lung').value;
+
+  try {
+    const res = await fetch(
+      `/api/health_advice?aqi=${aqi}&age_group=${age}&gender=${gender}&lung_issue=${lung}`
+    );
+    const d = await res.json();
+
+    document.getElementById('health-heading').textContent =
+      `For AQI ${aqi} (${d.category}) — your tips`;
+    document.getElementById('health-heading').style.color = d.color;
+
+    document.getElementById('health-tips').innerHTML =
+      d.tips.map(t => `<li>${t}</li>`).join('');
+
+    document.getElementById('health-result').style.display = 'block';
+
+    // Save prefs
+    localStorage.setItem('healthPrefs', JSON.stringify({ age, gender, lung }));
+
+  } catch(err) {
+    alert('Could not load health advice. Please try again.');
+  }
+}
+
+// ── Modal ─────────────────────────────────────────────────────────────────────
+function openModal() {
+  document.getElementById('modal').classList.add('open');
+  document.getElementById('sub-msg').className = 'msg';
+
+  // Sync from main selectors
+  document.getElementById('s-city').value   = document.getElementById('city-select').value;
+  document.getElementById('s-age').value    = document.getElementById('h-age').value;
+  document.getElementById('s-gender').value = document.getElementById('h-gender').value;
+  document.getElementById('s-lung').value   = document.getElementById('h-lung').value;
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+}
+
+document.getElementById('modal').addEventListener('click', e => {
+  if (e.target === document.getElementById('modal')) closeModal();
+});
+
+// ── Subscribe ─────────────────────────────────────────────────────────────────
+async function submitSubscription() {
+  const data = {
+    name:       document.getElementById('s-name').value.trim(),
+    email:      document.getElementById('s-email').value.trim(),
+    city:       document.getElementById('s-city').value,
+    age_group:  document.getElementById('s-age').value,
+    gender:     document.getElementById('s-gender').value,
+    lung_issue: document.getElementById('s-lung').value,
+    threshold:  parseInt(document.getElementById('s-threshold').value),
+  };
+
+  if (!data.name || !data.email) {
+    showMsg('sub-msg', 'Name and email are required.', false);
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/subscribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    const d = await res.json();
+    showMsg('sub-msg', d.msg, d.ok);
+    if (d.ok) setTimeout(closeModal, 1800);
+  } catch(err) {
+    showMsg('sub-msg', 'Subscription failed. Please try again.', false);
+  }
+}
+
+function showMsg(id, text, ok) {
+  const el      = document.getElementById(id);
+  el.textContent = text;
+  el.className  = 'msg ' + (ok ? 'ok' : 'err');
+}
+
+// ── On page load ──────────────────────────────────────────────────────────────
+window.addEventListener('load', () => {
+  // Restore health prefs
+  try {
+    const prefs = JSON.parse(localStorage.getItem('healthPrefs') || '{}');
+    if (prefs.age)    document.getElementById('h-age').value    = prefs.age;
+    if (prefs.gender) document.getElementById('h-gender').value = prefs.gender;
+    if (prefs.lung)   document.getElementById('h-lung').value   = prefs.lung;
+  } catch(e) {}
+
+  // Restore last city
+  const lastCity = localStorage.getItem('lastCity');
+  if (lastCity) {
+    document.getElementById('city-select').value = lastCity;
+  }
+
+  // Auto-load AQI for default city
+  loadAQI();
+});
+</script>
+</body>
+</html>
