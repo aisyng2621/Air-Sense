@@ -42,8 +42,8 @@ Generate `.pkl` file and attach it to main website through Streamlit
 ##  AI TOOLS AND TECHNOLOGIES
 
 - **Data Preprocessing:** Python, Pandas  
-- **Machine Learning:**  
-- **Frontend:**  
+- **Machine Learning:**:XGBOOST ,SKLEARN 
+- **Frontend:**  Streamlit
 - **Backend:** Python  
 
 ---
