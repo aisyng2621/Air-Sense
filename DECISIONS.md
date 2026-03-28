@@ -28,7 +28,7 @@ It shows that we did not blindly follow AI and made our own decisions based on t
 ##  Decision 3: Data Source Selection
 
 * **AI Suggestion (ChatGPT):** Use multiple global datasets
-* **Team Decision:** Use CPCB/OpenAQ for AQI and Open-Meteo for weather
+* **Team Decision:** Use CPCB for weather
 * **Reason:** Keeps the project aligned with Indian conditions and standard AQI guidelines.
 
 ---
@@ -60,7 +60,7 @@ It shows that we did not blindly follow AI and made our own decisions based on t
 ## 🔹 Decision 7: Data Window
 
 * **AI Suggestion (ChatGPT):** Use large multi-year dataset
-* **Team Decision:** Use recent data (30 days to 1 year)
+* **Team Decision:** Use recent data ( 1 year)
 * **Reason:** Recent data reflects current pollution trends better.
 
 ---
